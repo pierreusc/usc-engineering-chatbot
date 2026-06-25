@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USC Viterbi AI Chatbot Project</title>
+
+  <!-- Font Awesome for icons. The page still works if this CDN is blocked. -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <style>
+    /* =========================================================
+       GLOBAL STYLE SETTINGS
+       ========================================================= */
+    :root {
+      --usc-red: #990000;
+      --usc-red-dark: #7f0000;
+      --usc-gold: #ffcc00;
+      --page-bg: #f7f6f4;
+      --card-bg: #ffffff;
+      --soft-bg: #f4f4f4;
+      --border: #e5e2df;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --good: #22c55e;
+      --danger: #b91c1c;
+      --shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page-bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================
+       TOP USC HEADER
+       ========================================================= */
+    .topbar {
+      height: 43px;
+      background: var(--usc-red);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      line-height: 1.05;
+      font-weight: 700;
+    }
+
+    .brand i {
+      color: var(--usc-gold);
+      font-size: 20px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      letter-spacing: 0.1px;
+    }
+
+    .brand-subtitle {
+      font-size: 9px;
+      color: var(--usc-gold);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .project-pill {
+      background: var(--usc-red-dark);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       MAIN LAYOUT
+       ========================================================= */
+    .page-wrap {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 11px 12px 0;
+    }
+
+    .app {
+      width: min(100%, 720px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .key-card,
+    .chat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* =========================================================
+       API KEY CARD
+       ========================================================= */
+    .key-card {
+      padding: 13px 14px;
+    }
+
+    .key-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .key-title i { color: var(--usc-gold); }
+
+    .key-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .api-input {
+      flex: 1;
+      height: 32px;
+      border: 2px solid var(--usc-red);
+      border-radius: 7px;
+      padding: 0 10px;
+      outline: none;
+      font-size: 12px;
+      background: white;
+    }
+
+    .save-key-btn {
+      border: none;
+      background: #2b2828;
+      color: white;
+      padding: 0 15px;
+      height: 32px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .key-note {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* =========================================================
+       CHAT CARD
+       ========================================================= */
+    .chat-card {
+      height: calc(100vh - 155px);
+      min-height: 460px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bot-header {
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .bot-avatar,
+    .message-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #fde8ec;
+      color: var(--usc-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .bot-name {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .status {
+      color: var(--good);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--good);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 20px;
+      background: white;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .bubble {
+      max-width: 78%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      line-height: 1.45;
+      font-size: 15px;
+      white-space: pre-wrap;
+    }
+
+    .assistant .bubble {
+      background: var(--soft-bg);
+      color: var(--text);
+      border-top-left-radius: 4px;
+    }
+
+    .user .bubble {
+      background: var(--usc-red);
+      color: white;
+      font-weight: 700;
+      border-bottom-right-radius: 4px;
+    }
+
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #777;
+      animation: bounce 1.1s infinite ease-in-out;
+    }
+
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.30s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    .chat-form {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding: 12px 14px 14px;
+      display: flex;
+      gap: 8px;
+      background: white;
+    }
+
+    .chat-input {
+      flex: 1;
+      height: 40px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 0 14px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input:focus {
+      border: 2px solid var(--usc-red);
+    }
+
+    .send-btn {
+      width: 45px;
+      height: 40px;
+      border: none;
+      border-radius: 11px;
+      background: var(--usc-red);
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .send-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .error-text {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    @media (max-width: 650px) {
+      .project-pill { display: none; }
+      .page-wrap { padding: 8px; }
+      .key-row { flex-direction: column; }
+      .save-key-btn { width: 100%; }
+      .chat-card { height: calc(100vh - 190px); min-height: 420px; }
+      .bubble { max-width: 86%; font-size: 14px; }
+      .bot-header { padding: 0 14px; }
+      .messages { padding: 18px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- =========================================================
+       USC HEADER
+       ========================================================= -->
+  <header class="topbar">
+    <div class="brand">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <div>
+        <div class="brand-title">USC Viterbi</div>
+        <div class="brand-subtitle">Discover Engineering</div>
+      </div>
+    </div>
+    <div class="project-pill">AI Chatbot Project</div>
+  </header>
+
+  <main class="page-wrap">
+    <section class="app">
+      <!-- =====================================================
+           LOCAL API KEY SETUP
+           ===================================================== -->
+      <div class="key-card">
+        <div class="key-title"><i class="fa-solid fa-key"></i> Setup Local Credentials</div>
+        <div class="key-row">
+          <input id="apiKeyInput" class="api-input" type="password" placeholder="Paste your Gemini API Key here..." autocomplete="off" />
+          <button id="saveKeyBtn" class="save-key-btn" type="button">Save Key Locally</button>
+        </div>
+        <div class="key-note">Your key stays in your browser only. It is never uploaded to GitHub.</div>
+      </div>
+
+      <!-- =====================================================
+           CHATBOT INTERFACE
+           ===================================================== -->
+      <div class="chat-card">
+        <div class="bot-header">
+          <div class="bot-avatar"><i id="headerIcon" class="fa-solid fa-helmet-safety"></i></div>
+          <div>
+            <div id="botTitle" class="bot-name">CivicBot (Civil &amp; Env.)</div>
+            <div class="status"><span class="status-dot"></span> Active</div>
+          </div>
+        </div>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" class="chat-input" type="text" placeholder="Ask a question about our engineering field..." autocomplete="off" />
+          <button id="sendBtn" class="send-btn" type="submit" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================================================
+    // EDIT THIS SECTION WEEKLY
+    // Change the title, icon, greeting, model, and personality here.
+    // =========================================================
+    const BOT_CONFIG = {
+      title: "Electric and Biomed USC Bot",
+      iconClass: "fa-solid fa-helmet-safety",
+      placeholder: "Ask a question about our engineering field...",
+      apiStorageKey: "usc-viterbi-gemini-api-key",
+
+      // You can change the model if your teacher/program tells you to.
+      // Common options may include gemini-2.5-flash or newer Gemini models.
+      model: "gemini-2.5-flash",
+
+      greeting: "Fight On! I am your team's engineering advisor bot. Paste your API key above, then ask me anything about our field.",
+
+      systemPrompt: `You are PulseBot, the official Biomedical & Electrical Engineering advisor for the USC Viterbi Discover Engineering Program.
+
+Your purpose is to inspire high school students to explore engineering while teaching Biomedical and Electrical Engineering in an exciting, accurate, and approachable way.
+
+PERSONALITY
+- Enthusiastic, energetic, and encouraging.
+- Friendly and conversational.
+- Scientifically accurate but never overly technical unless the student requests it.
+- Never talk down to students.
+- Show genuine excitement about engineering and innovation.
+
+YOUR AUDIENCE
+Assume every student is in high school with little or no engineering background. Explain concepts so they are easy to understand while still being technically correct.
+
+TEACHING STYLE
+- Start with a direct answer to the student's question.
+- Break difficult ideas into simple steps.
+- Use analogies and real-world examples whenever possible.
+- Explain technical vocabulary the first time it appears.
+- Connect engineering concepts to devices students recognize.
+- When appropriate, explain why the concept matters in medicine or everyday life.
+- Encourage curiosity and further learning.
+
+AREAS OF EXPERTISE
+You specialize in:
+- Biomedical Engineering
+- Electrical Engineering
+- Pacemakers
+- Prosthetics
+- Medical sensors
+- Wearable technology
+- Medical imaging (MRI, CT, Ultrasound)
+- ECG, EEG, and EMG
+- Artificial organs
+- Medical robotics
+- Brain-computer interfaces
+- Biosensors
+- Digital logic
+- Digital circuits
+- Analog circuits
+- Electronics
+- Microcontrollers
+- Embedded systems
+- Signal processing
+- Medical instrumentation
+
+RESPONSE RULES
+- Keep responses under 3 short paragraphs unless the student specifically requests more detail.
+- Prefer short paragraphs and bullet points over long blocks of text.
+- Never make up information. If uncertain, say so.
+- If a question has multiple valid answers, briefly explain each.
+- Stay focused on engineering and related STEM topics.
+- Avoid unnecessary jargon.
+- If asked about careers, explain what engineers actually do and why their work matters.
+- If appropriate, recommend simple hands-on projects or experiments students can try safely.
+
+Your goal is to make students leave every conversation thinking, "Engineering is really cool—I could see myself doing this."
+
+Always end every response with:
+
+Fight On!`
+    };
+
+    // =========================================================
+    // PAGE ELEMENTS
+    // =========================================================
+    const apiKeyInput = document.getElementById("apiKeyInput");
+    const saveKeyBtn = document.getElementById("saveKeyBtn");
+    const messagesEl = document.getElementById("messages");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const botTitle = document.getElementById("botTitle");
+    const headerIcon = document.getElementById("headerIcon");
+
+    // Chat history sent to Gemini. Each item follows Gemini's content format.
+    const conversationHistory = [];
+
+    // =========================================================
+    // INITIAL SETUP
+    // =========================================================
+    function initPage() {
+      botTitle.textContent = BOT_CONFIG.title;
+      headerIcon.className = BOT_CONFIG.iconClass;
+      chatInput.placeholder = BOT_CONFIG.placeholder;
+
+      const savedKey = localStorage.getItem(BOT_CONFIG.apiStorageKey);
+      if (savedKey) apiKeyInput.value = savedKey;
+
+      addMessage("assistant", BOT_CONFIG.greeting);
+    }
+
+    // =========================================================
+    // API KEY STORAGE
+    // =========================================================
+    saveKeyBtn.addEventListener("click", () => {
+      const key = apiKeyInput.value.trim();
+      if (!key) {
+        alert("Paste your Gemini API key first.");
+        return;
+      }
+      localStorage.setItem(BOT_CONFIG.apiStorageKey, key);
+      saveKeyBtn.textContent = "Saved!";
+      setTimeout(() => saveKeyBtn.textContent = "Save Key Locally", 1200);
+    });
+
+    // =========================================================
+    // MESSAGE RENDERING
+    // =========================================================
+    function addMessage(role, text, options = {}) {
+      const row = document.createElement("div");
+      row.className = `message-row ${role}`;
+
+      if (role === "assistant") {
+        const avatar = document.createElement("div");
+        avatar.className = "message-avatar";
+        const icon = document.createElement("i");
+        icon.className = BOT_CONFIG.iconClass;
+        avatar.appendChild(icon);
+        row.appendChild(avatar);
+      }
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      if (options.isError) bubble.classList.add("error-text");
+      bubble.textContent = text;
+      row.appendChild(bubble);
+
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return row;
+    }
+
+    function addTypingBubble() {
+      const row = document.createElement("div");
+      row.className = "message-row assistant";
+      row.id = "typingRow";
+
+      const avatar = document.createElement("div");
+      avatar.className = "message-avatar";
+      const icon = document.createElement("i");
+      icon.className = BOT_CONFIG.iconClass;
+      avatar.appendChild(icon);
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
+
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return row;
+    }
+
+    // =========================================================
+    // CHAT FORM HANDLER
+    // =========================================================
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const userText = chatInput.value.trim();
+      if (!userText) return;
+
+      const apiKey = apiKeyInput.value.trim() || localStorage.getItem(BOT_CONFIG.apiStorageKey);
+      if (!apiKey) {
+        addMessage("assistant", "Please paste your Google AI Studio Gemini API key above and click Save Key Locally first.", { isError: true });
+        return;
+      }
+
+      addMessage("user", userText);
+      chatInput.value = "";
+      setLoading(true);
+      const typingRow = addTypingBubble();
+
+      try {
+        const reply = await askGemini(userText, apiKey);
+        typingRow.remove();
+        addMessage("assistant", reply);
+
+        conversationHistory.push({ role: "user", parts: [{ text: userText }] });
+        conversationHistory.push({ role: "model", parts: [{ text: reply }] });
+      } catch (error) {
+        typingRow.remove();
+        addMessage("assistant", `Something went wrong: ${error.message}`, { isError: true });
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    function setLoading(isLoading) {
+      sendBtn.disabled = isLoading;
+      chatInput.disabled = isLoading;
+      if (!isLoading) chatInput.focus();
+    }
+
+    // =========================================================
+    // GEMINI API CALL
+    // Uses the generateContent endpoint from Google AI Studio.
+    // =========================================================
+    async function askGemini(userText, apiKey) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(BOT_CONFIG.model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+      const body = {
+        systemInstruction: {
+          parts: [{ text: BOT_CONFIG.systemPrompt }]
+        },
+        contents: [
+          ...conversationHistory,
+          { role: "user", parts: [{ text: userText }] }
+        ],
+        generationConfig: {
+          temperature: 0.75,
+          topP: 0.95,
+          maxOutputTokens: 900
+        }
+      };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const message = data?.error?.message || `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || "")
+        .join("")
+        .trim();
+
+      if (!text) {
+        throw new Error("The API returned no text. Check your API key, model name, or safety settings.");
+      }
+
+      return text;
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
